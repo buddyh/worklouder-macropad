@@ -1,0 +1,4 @@
+interface:
+  display_name: "Work Louder Macropad"
+  short_description: "Design and configure complete Codex Micro workflows"
+  default_prompt: "Use $worklouder-macropad to inspect my workflow, propose a complete Codex Micro layout, dry-run it, configure it safely, and physically verify every changed control."

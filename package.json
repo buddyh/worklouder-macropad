@@ -1,0 +1,15 @@
+{
+  "name": "worklouder-macropad-skill",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Agent skill and dependency-free configurator for Work Louder Codex Micro workflows",
+  "license": "MIT",
+  "scripts": {
+    "check": "node --check scripts/worklouder.js && node --check scripts/lib/input-device.js && node --check scripts/enable-smart-actions.js",
+    "test": "node --test scripts/*.test.js",
+    "validate-skill": "python3 \"$CODEX_HOME/skills/.system/skill-creator/scripts/quick_validate.py\" ."
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
