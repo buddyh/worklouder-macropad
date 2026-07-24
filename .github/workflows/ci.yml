@@ -19,3 +19,5 @@ jobs:
         run: npm run check
       - name: Unit tests
         run: npm test
+      - name: Build native HUD
+        run: node scripts/build-hud.js --output /tmp/worklouder-hud

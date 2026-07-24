@@ -106,6 +106,8 @@ Provide 1–7 user actions. The configurator prepends the fixed `KI_X` close sec
 
 Set `"allLayers": true` to update every non-stock layer in the profile. Layer 1 remains excluded unless explicitly authorized.
 
+Lighting settings apply to the complete layer. The observed schema does not provide per-key colors or a press-reactive effect. Do not generate rapid layer-switch Actions as a lighting animation: physical testing produced only layer-indicator flashes, not intermediate RGB rendering.
+
 ### Action
 
 ```json
@@ -173,6 +175,19 @@ Payloads:
 {"type":"APP_STEP","payload":{"name":"Example","path":"/Applications/Example.app"}}
 {"type":"CMD_STEP","payload":{"cmd":"/absolute/path/to/program arguments"}}
 ```
+
+Input executes `CMD_STEP` with Electron's `child_process.exec`; it does not run the command in an interactive terminal. Use an absolute wrapper when possible. If a login shell is required, invoke it explicitly:
+
+```json
+{
+  "type": "CMD_STEP",
+  "payload": {
+    "cmd": "/bin/zsh -lic '/absolute/path/to/program arguments' </dev/null"
+  }
+}
+```
+
+The `</dev/null` redirect is required for non-interactive agent CLIs that otherwise continue waiting on Input's open stdin.
 
 ### Linked app
 

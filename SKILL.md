@@ -31,8 +31,8 @@ Read only the references needed for the request:
 
 - [capabilities.md](references/capabilities.md): every configurable surface, support status, and known unknowns.
 - [configuration.md](references/configuration.md): manifest operations and complete schemas.
-- [recipes.md](references/recipes.md): portable app, URL, text, command, Codex, Claude, and OpenClaw patterns.
-- [hardware-verification.md](references/hardware-verification.md): Layer 3 test matrix for keys, gestures, encoder, joystick, lighting, layers, and AppSense.
+- [recipes.md](references/recipes.md): portable app, URL, text, command, agent, execution-context, and diagnostic-feedback patterns.
+- [hardware-verification.md](references/hardware-verification.md): disposable-layer test matrix for keys, gestures, encoder, joystick, lighting, layers, and AppSense.
 - [input-protocol.md](references/input-protocol.md): Input storage, HID RPC, serialization, checksums, and recovery.
 - [firmware.md](references/firmware.md): firmware, Input version, Smart Actions gate, code-signing, and recovery.
 - [keycodes.md](references/keycodes.md): keycode families and layer/profile switching.
@@ -78,9 +78,43 @@ Supported types:
 | `APP_STEP` | `name`, `path` | Open an application |
 | `URL_STEP` | `url` | Open a URL |
 | `TEXT_STEP` | `text` | Insert fixed text |
-| `CMD_STEP` | `cmd` | Run one command through Input's GUI shell |
+| `CMD_STEP` | `cmd` | Run one command through Input's Electron `child_process.exec` handler |
 
-For commands, resolve executables to absolute paths and use explicit working directories. Do not rely on aliases, shell functions, terminal initialization, or secrets embedded in payloads. Prefer a stable wrapper for long-running, stateful, or credentialed workflows.
+Input does not open a terminal. It passes the command string to Electron's `child_process.exec`, so interactive-shell assumptions are unsafe. Prefer an absolute wrapper path. When shell initialization is intentionally required, invoke it explicitly, for example `/bin/zsh -lic '<command>'`. Close stdin for non-interactive agent commands with `</dev/null`; otherwise a CLI can wait indefinitely on Input's open pipe.
+
+Give every agent command an explicit execution context. Use `codex exec -C <workspace>` for Codex, and add `--skip-git-repo-check` only when that selected context is intentionally not a Git repository. A public layout should resolve named/default contexts from user configuration rather than embedding machine-specific paths. See [recipes.md](references/recipes.md).
+
+Generate a portable agent Smart Action and optionally map it in one manifest:
+
+```bash
+node scripts/generate-agent-action.js \
+  --agent codex \
+  --workspace /absolute/path/to/workspace \
+  --prompt "Summarize the current status" \
+  --name "Status" \
+  --layer 2 --row 1 --key 1 \
+  --output /tmp/status-button.json
+node scripts/worklouder.js apply-config /tmp/status-button.json
+```
+
+The generator discovers the login shell, detects whether the workspace is a Git repository, closes stdin, reuses an existing Smart Action with the same name, and allocates a new ID otherwise. If command permission is disabled, `--include-command-permission` requires the corresponding explicit apply gate.
+
+## Diagnostic feedback
+
+The bundled one-shot native macOS HUD displays a short label without a resident helper:
+
+```bash
+node scripts/build-hud.js
+node scripts/generate-diagnostic-config.js \
+  --layer 4 \
+  --mode hud \
+  --output /tmp/worklouder-diagnostics.json
+node scripts/worklouder.js apply-config /tmp/worklouder-diagnostics.json
+```
+
+Review the dry run before applying. The diagnostic generator also supports `notification` and `alert` feedback modes. HUD feedback is the preferred physical-test surface because it is immediate and identifies the exact key, gesture, encoder event, or joystick sector.
+
+Lighting is configured per layer, not per key or press. Do not build a reactive-light workflow by rapidly switching layers: physical testing showed only layer-indicator flashes, not the intermediate RGB settings. Input's live lighting preview is internal and holds the HID connection exclusively, so it is not a robust external command surface.
 
 ## Smart Actions UI gate
 

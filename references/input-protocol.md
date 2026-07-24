@@ -56,6 +56,8 @@ ui.home_accent_color
 
 The public configurator uses only status, listing, chunked reads, and chunked writes. Transactions, direct lighting preview, delete, and accent-color behavior remain unverified and are not default mutation paths.
 
+`lights.preview` is an internal Input preview route, not a stable external automation API. Input owns the device's HID connection exclusively while running, so another process cannot robustly use preview calls for press-reactive lighting alongside Input.
+
 ## File reads and writes
 
 Read in byte chunks:
@@ -165,6 +167,8 @@ kb.radial
 ```
 
 A successful file write proves storage only. Notification receipt and host completion are separate verification stages.
+
+For `kb.sa.exec`, Input 0.17.2 passes the stored `CMD_STEP` string to Electron's `child_process.exec`. This is a GUI-process execution environment, not an interactive terminal. Shell aliases and functions are unavailable unless the payload explicitly invokes a login shell, and non-interactive agent commands should close stdin with `</dev/null`.
 
 ## Environment overrides
 

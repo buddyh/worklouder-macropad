@@ -17,8 +17,8 @@ Status vocabulary:
 | Encoder | Supported | Counter-clockwise, clockwise, and press, each mapped to any valid keycode/action reference |
 | Joystick radial mode | Supported | Fixed close sector plus 1–7 schema-supported sectors; Codex marketing advertises four skills |
 | Joystick analog mode | Unavailable | Input labels it “coming soon”; do not generate it |
-| Backlight | Verified schema | Effect, brightness, speed, magic, color, per layer |
-| Underglow | Verified schema | Effect, brightness, speed, magic, color, per layer |
+| Backlight | Verified schema | Effect, brightness, speed, magic, and color for the whole layer |
+| Underglow | Verified schema | Effect, brightness, speed, magic, and color for the whole layer |
 | Linked apps/AppSense | Supported | Registry entry plus layer `linkedAppId` |
 | Function-pad layer | Unknown | `fpLayer` is preserved if present; Codex editing semantics are not proven |
 | Cheat Sheet key | Unknown | Firmware release mentions it, but safe Codex keycode/configuration is not proven |
@@ -48,7 +48,8 @@ Both backlight and underglow expose:
 
 - effects: `off`, `solid`, `snake`, `rainbow`, `breath`, `gradient`;
 - `brightness`, `speed`, and `magic` as values from `0` to `1`;
-- 24-bit RGB color.
+- 24-bit RGB color;
+- independent configuration on each layer.
 
 Observed Input control availability:
 
@@ -64,6 +65,24 @@ Observed Input control availability:
 The exact visual meaning of `magic` is effect-specific and not documented. Treat it as a normalized effect parameter and verify visually.
 
 Layer `color` is distinct from lighting color. It is confirmed Input metadata; its physical effect is unknown.
+
+Lighting is not individually addressable through the observed Input configuration. There is no native per-key color, press-reactive flash, or Smart Action that temporarily changes lighting.
+
+A macro that switched through several differently lit layers was physically tested. It flashed the destination layer indicators while the original layer remained active, but did not render the intermediate layers' RGB effects. Treat multi-layer macros as **unavailable for reactive lighting**, not as an unverified workaround. Normal per-layer lighting remains supported and is useful for identifying the active layer.
+
+Input has an internal live-lighting preview path, but it is not exposed as a configurable Smart Action or stable public command. Input also owns the HID connection exclusively while active. An external process therefore cannot robustly inject temporary preview effects alongside Input.
+
+## Host feedback
+
+The bundled Swift HUD is a verified one-shot macOS feedback surface. Each invocation opens a non-activating overlay, shows a title/detail briefly, and exits; it does not require a resident daemon. It is suitable for identifying the shortcut or gesture that fired.
+
+Diagnostic layouts can instead use:
+
+- `hud`: preferred immediate overlay;
+- `notification`: macOS Notification Center through `osascript`;
+- `alert`: a timed foreground AppleScript alert.
+
+These are host-side `CMD_STEP` results, not firmware lighting effects. Notification visibility depends on macOS notification settings, while alerts can interrupt focus.
 
 ## Encoder order
 

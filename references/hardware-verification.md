@@ -1,6 +1,6 @@
 # Hardware verification
 
-Use a disposable layer, normally Layer 3, and a focused plain-text field. Back up first. Test one surface at a time so failures are attributable.
+Use a disposable layer and a focused plain-text field. Back up first. Test one surface at a time so failures are attributable.
 
 ## Baseline
 
@@ -75,6 +75,46 @@ Verify:
 - “apply to all layers” is not used unless explicitly intended;
 - each effect's enabled parameters produce visible changes.
 
+Lighting is whole-layer state. Per-key colors and press-reactive effects are not exposed.
+
+Do not use a multi-step Action that rapidly switches between layers as a lighting animation. Physical testing showed the layer indicators flashing while the original layer stayed active; the intermediate backlight and underglow colors did not render. Record that route as unavailable, not merely unverified.
+
+Input's live lighting preview is internal to the app and requires exclusive access to the HID connection. It is not a reliable external command surface while Input is running.
+
+## Diagnostic HUD
+
+Build the one-shot native macOS HUD:
+
+```bash
+node scripts/build-hud.js
+```
+
+Generate a disposable diagnostic layer:
+
+```bash
+node scripts/generate-diagnostic-config.js \
+  --layer 4 \
+  --mode hud \
+  --output /tmp/worklouder-diagnostics.json
+```
+
+Supported feedback modes are:
+
+- `hud`: native non-activating overlay; preferred;
+- `notification`: Notification Center banner through `osascript`;
+- `alert`: timed foreground AppleScript alert.
+
+Dry-run and review before applying:
+
+```bash
+node scripts/worklouder.js apply-config /tmp/worklouder-diagnostics.json
+node scripts/worklouder.js apply-config /tmp/worklouder-diagnostics.json --apply
+```
+
+Quit Input before the apply and relaunch it afterward. The generator uses `CMD_STEP`, so command permission must already be enabled. If it is not, `--include-command-permission` adds the operation, and the apply also requires explicit `--allow-command-execution`.
+
+The HUD process is one-shot: it displays the shortcut name and exits. A generated diagnostic layout is still only a test fixture; mark each key, gesture, encoder event, joystick sector, Action path, and Smart Action type verified only after the expected label or host result is physically observed.
+
 ## Smart Action tests
 
 Test each type separately:
@@ -82,7 +122,7 @@ Test each type separately:
 1. `TEXT_STEP`: fixed non-secret text into a text field.
 2. `URL_STEP`: an inert URL such as `https://example.com`.
 3. `APP_STEP`: an installed application.
-4. `CMD_STEP`: a visible local notification with an absolute executable path.
+4. `CMD_STEP`: the native HUD or a visible local notification with an absolute executable path.
 
 For each, verify:
 
@@ -91,6 +131,14 @@ For each, verify:
 - Input is running;
 - Input log contains the expected `kb.sa.*` event;
 - host result appears.
+
+For agent CLIs, test with an explicit workspace and closed stdin. A Codex smoke test follows this shape:
+
+```text
+/absolute/path/to/codex exec -C "/absolute/workspace" "Return a short test result" </dev/null
+```
+
+Add `--skip-git-repo-check` only if the selected workspace is intentionally not a Git repository.
 
 Then test Smart Actions from tap, double tap, hold, tap+hold, encoder turns/press, and joystick sectors before claiming those combinations.
 
