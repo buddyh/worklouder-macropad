@@ -53,6 +53,7 @@ test('encodes editor references for firmware', () => {
 test('normalizes three- and six-digit colors', () => {
   assert.equal(colorToNumber('#F00'), 0xFF0000);
   assert.equal(colorToNumber('#12abEF'), 0x12ABEF);
+  assert.equal(colorToNumber('##12abEF'), 0x12ABEF);
 });
 
 test('creates 2 to 8 radial sectors with normalized angles', () => {

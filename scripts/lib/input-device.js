@@ -65,7 +65,7 @@ function normalizeHexColor(value) {
     return `#${value.toString(16).toUpperCase().padStart(6, '0')}`;
   }
   if (typeof value !== 'string') throw new Error(`Invalid color: ${value}`);
-  let hex = value.trim().replace(/^#/, '');
+  let hex = value.trim().replace(/^#+/, '');
   if (/^[0-9A-Fa-f]{3}$/.test(hex)) hex = hex.split('').map((char) => char + char).join('');
   if (!/^[0-9A-Fa-f]{6}$/.test(hex)) throw new Error(`Invalid color: ${value}`);
   return `#${hex.toUpperCase()}`;
@@ -150,7 +150,7 @@ function validateLightingConfig(config) {
       throw new Error(`Lighting ${field} must be between 0 and 1`);
     }
   }
-  if (config.color !== undefined) normalizeHexColor(config.color);
+  if (config.color != null) normalizeHexColor(config.color);
 }
 
 function lightingToDevice(lights) {
@@ -159,7 +159,7 @@ function lightingToDevice(lights) {
     validateLightingConfig(config);
     return {
       ...config,
-      color: config.color === undefined ? undefined : colorToNumber(config.color),
+      color: config.color == null ? config.color : colorToNumber(config.color),
     };
   };
   return {

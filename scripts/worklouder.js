@@ -131,6 +131,10 @@ function sameJson(left, right) {
   return JSON.stringify(left) === JSON.stringify(right);
 }
 
+function operationTouchesKeymap(operation) {
+  return !['upsert-smart-action', 'set-command-permission'].includes(operation.type);
+}
+
 function redactOperations(operations, showPayloads = false) {
   if (showPayloads) return operations;
   return operations.map((operation) => {
@@ -254,15 +258,16 @@ function operationFromArgs(command, args) {
 }
 
 function planOutput(before, after, operations) {
-  const beforeKeymap = keymapFromRecord(before.record);
-  const afterKeymap = keymapFromRecord(after.record);
+  const keymapTouched = operations.some(operationTouchesKeymap);
+  const beforeKeymap = keymapTouched ? keymapFromRecord(before.record) : null;
+  const afterKeymap = keymapTouched ? keymapFromRecord(after.record) : null;
   const beforeSmartActions = smartActionsFromRecord(before.record);
   const afterSmartActions = smartActionsFromRecord(after.record);
   return {
     mode: 'dry-run',
     operations,
     changes: {
-      keymap: checksumJson(beforeKeymap) !== checksumJson(afterKeymap),
+      keymap: keymapTouched && checksumJson(beforeKeymap) !== checksumJson(afterKeymap),
       smartActions: checksumJson(beforeSmartActions) !== checksumJson(afterSmartActions),
       inputSettings: checksumJson(before.database) !== checksumJson(after.database)
         && checksumJson(before.record) === checksumJson(after.record),
@@ -272,19 +277,19 @@ function planOutput(before, after, operations) {
       stockLayerSnapshot(after.record),
     ),
     before: {
-      keymapHash: checksumJson(beforeKeymap),
+      keymapHash: keymapTouched ? checksumJson(beforeKeymap) : '<preserved>',
       smartActionsHash: checksumJson(beforeSmartActions),
     },
     after: {
-      keymapHash: checksumJson(afterKeymap),
-      keymapBytes: Buffer.byteLength(JSON.stringify(afterKeymap)),
+      keymapHash: keymapTouched ? checksumJson(afterKeymap) : '<preserved>',
+      keymapBytes: keymapTouched ? Buffer.byteLength(JSON.stringify(afterKeymap)) : null,
       smartActionsHash: checksumJson(afterSmartActions),
       smartActionsBytes: Buffer.byteLength(JSON.stringify(afterSmartActions)),
     },
   };
 }
 
-async function applyState(state) {
+async function applyState(state, operations) {
   const releaseLock = acquireLock(state.paths.supportRoot);
   let rpc;
   try {
@@ -312,8 +317,12 @@ async function applyState(state) {
     }
 
     const desired = {
-      [SMART_ACTIONS_FILE]: smartActionsFromRecord(state.record),
-      [KEYMAP_FILE]: keymapFromRecord(state.record),
+      [SMART_ACTIONS_FILE]: operations.some((operation) => operation.type === 'upsert-smart-action')
+        ? smartActionsFromRecord(state.record)
+        : JSON.parse(oldSmartActions),
+      [KEYMAP_FILE]: operations.some(operationTouchesKeymap)
+        ? keymapFromRecord(state.record)
+        : JSON.parse(oldKeymap),
     };
     const originals = {
       [KEYMAP_FILE]: oldKeymap,
@@ -461,7 +470,7 @@ async function main() {
     ));
     return;
   }
-  const result = await applyState(state);
+  const result = await applyState(state, operations);
   console.log(JSON.stringify({
     ...result,
     operations: redactOperations(operations, boolArg(args, 'show-payloads')),

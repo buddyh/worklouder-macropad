@@ -81,6 +81,45 @@ test('dry runs redact Smart Action payloads', () => {
   fs.rmSync(state.root, {recursive: true, force: true});
 });
 
+test('Smart-Action-only dry runs preserve keymap with unrelated null lighting colors', () => {
+  const state = fixture();
+  const database = JSON.parse(fs.readFileSync(state.databasePath, 'utf8'));
+  const record = database.collections.find(({name}) => name === 'devices').data[0];
+  record.profiles[0].layers[0].layout.keymap[0][0] = 'KC_Z';
+  record.profiles[0].layers[0].lights.backlight.color = null;
+  record.profiles[0].layers[0].lights.underglow.color = null;
+  fs.writeFileSync(state.databasePath, JSON.stringify(database));
+  const beforeDatabase = fs.readFileSync(state.databasePath, 'utf8');
+
+  const configPath = path.join(state.root, 'smart-only.json');
+  fs.writeFileSync(configPath, JSON.stringify({
+    version: 1,
+    operations: [{
+      type: 'upsert-smart-action',
+      action: {
+        id: 4,
+        name: 'Portable text',
+        type: 'TEXT_STEP',
+        payload: {text: 'portable'},
+      },
+    }],
+  }));
+  const result = childProcess.spawnSync(process.execPath, [cli, 'apply-config', configPath], {
+    encoding: 'utf8',
+    env: state.env,
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  const plan = JSON.parse(result.stdout);
+  assert.equal(plan.changes.keymap, false);
+  assert.equal(plan.before.keymapHash, '<preserved>');
+  assert.equal(plan.after.keymapHash, '<preserved>');
+  assert.equal(plan.after.keymapBytes, null);
+  assert.equal(plan.protectedLayer1Preserved, true);
+  assert.equal(fs.readFileSync(state.databasePath, 'utf8'), beforeDatabase);
+  fs.rmSync(state.root, {recursive: true, force: true});
+});
+
 test('command permission requires an affirmative CLI flag', () => {
   const state = fixture();
   const configPath = path.join(state.root, 'config.json');
