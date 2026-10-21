@@ -826,10 +826,13 @@ function loadAddon(paths) {
 
 function findHidDevice(addon, record) {
   const productId = Number(record.device?.devicePid);
-  const candidates = addon.devices().filter((device) =>
-    device.usagePage === 1
-    && device.usage === 6
-    && Number(device.productId) === productId);
+  // Firmware 0.6.x answers RPC only on the vendor interface (usage page
+  // 0xFF00), which is what Input 1.0.x opens; older firmware used 1/6.
+  const devices = addon.devices().filter((device) => Number(device.productId) === productId);
+  const vendor = devices.filter((device) => device.usagePage === 0xFF00);
+  const candidates = vendor.length
+    ? vendor
+    : devices.filter((device) => device.usagePage === 1 && device.usage === 6);
   if (candidates.length === 1) return candidates[0];
   if (candidates.length === 0) {
     throw new Error(`Connected HID device not found for Input product ID ${record.device?.devicePid}`);
