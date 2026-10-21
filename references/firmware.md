@@ -10,6 +10,14 @@
 
 GitHub marks v0.5.0-rc.1 as a **pre-release**, not a stable/general release. Its notes explicitly add Cheat Sheet keys and Smart Actions: commands, apps, long text, and URLs. Treat it as experimental.
 
+## Also verified
+
+- Input 1.0.2 with firmware 0.6.3 (October 2026), over USB: inspect, dry-run, apply with readback, AppSense layer switching, Actions, and `CMD_STEP` Smart Actions.
+
+Firmware 0.6.x answers RPC only on the **vendor HID interface (usage page `0xFF00`)**, which is what Input 1.0.x opens. Earlier firmware also answered on the keyboard interface (usage page 1, usage 6). `lib/input-device.js` prefers `0xFF00` and falls back to 1/6. The symptom of using the wrong interface is a clean open, accepted writes, and `Timed out: device.status` with no reply. It is not caused by the ChatGPT app being open: replies are delivered to every reader, which Input's own log shows as `No resolver found for id` for requests it did not send.
+
+The Input 1.0.2 Smart Actions editor gate differs from 0.17.2, so `enable-smart-actions.js --status` reports `unknown` there; check `commandActionsEnabled` in `worklouder.js inspect` instead.
+
 ## Firmware boundary
 
 This skill does not:
