@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "id": "claude-desktop",
+  "layerName": "Claude",
+  "color": "#D97757",
+  "linkedApp": {
+    "name": "Claude-mac",
+    "process": "com.anthropic.claudefordesktop",
+    "path": "/Applications/Claude.app"
+  },
+  "requires": [
+    "Claude desktop app (Code tab)",
+    "freemicro with `freemicro focus` and Claude desktop session tracking, for the six Agent Keys (see references/agent-session-keys.md)"
+  ],
+  "keys": {
+    "AG00": {"command": "{{freemicro}} focus 1", "name": "Claude key 1"},
+    "AG01": {"command": "{{freemicro}} focus 2", "name": "Claude key 2"},
+    "AG02": {"command": "{{freemicro}} focus 3", "name": "Claude key 3"},
+    "AG03": {"command": "{{freemicro}} focus 4", "name": "Claude key 4"},
+    "AG04": {"command": "{{freemicro}} focus 5", "name": "Claude key 5"},
+    "AG05": {"command": "{{freemicro}} focus 6", "name": "Claude key 6"},
+    "ACT06": {"chord": ["KC_LALT", "KC_LGUI", "KC_F"], "name": "Fast mode"},
+    "ACT07": {"keycode": "KC_ENT"},
+    "ACT08": {"keycode": "KC_ESC"},
+    "ACT09": {"chord": ["KC_LGUI", "KC_N"], "name": "New session"},
+    "ACT12": {"keycode": "KC_ENT"}
+  },
+  "encoder": {
+    "clockwise": {"chord": ["KC_LALT", "KC_UP"], "name": "Prev session"},
+    "counterclockwise": {"chord": ["KC_LALT", "KC_DOWN"], "name": "Next session"},
+    "press": {"keycode": "KC_NONE"}
+  },
+  "notes": [
+    "FAST toggles fast mode (Option-Command-F). Shift+Tab cycles permission mode only in the terminal CLI; it does nothing in the desktop app.",
+    "APPR sends Return; REJ sends Escape, which the app lists as Stop Claude's response.",
+    "The dial walks sessions with Option-Up / Option-Down."
+  ]
+}

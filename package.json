@@ -5,7 +5,7 @@
   "description": "Agent skill and dependency-free configurator for Work Louder Codex Micro workflows",
   "license": "MIT",
   "scripts": {
-    "check": "node --check scripts/worklouder.js && node --check scripts/lib/input-device.js && node --check scripts/enable-smart-actions.js && node --check scripts/build-hud.js && node --check scripts/generate-diagnostic-config.js && node --check scripts/generate-agent-action.js",
+    "check": "node --check scripts/worklouder.js && node --check scripts/lib/input-device.js && node --check scripts/enable-smart-actions.js && node --check scripts/build-hud.js && node --check scripts/generate-diagnostic-config.js && node --check scripts/generate-agent-action.js && node --check scripts/generate-app-layer.js",
     "test": "node --test scripts/*.test.js",
     "validate-skill": "python3 \"${CODEX_HOME:-$HOME/.codex}/skills/.system/skill-creator/scripts/quick_validate.py\" ."
   },

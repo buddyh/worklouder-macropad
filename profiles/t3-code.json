@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "id": "t3-code",
+  "layerName": "T3 Code",
+  "color": "#7C5CFF",
+  "linkedApp": {
+    "name": "T3 Code-mac",
+    "process": "com.t3tools.t3code",
+    "path": "{{t3App}}"
+  },
+  "requires": [
+    "T3 Code desktop app",
+    "A user keybinding binding thread.stop to mod+. in ~/.t3/userdata/keybindings.json (see references/agent-apps.md)"
+  ],
+  "keys": {
+    "AG00": {"chord": ["KC_LGUI", "KC_1"], "name": "T3 thread 1"},
+    "AG01": {"chord": ["KC_LGUI", "KC_2"], "name": "T3 thread 2"},
+    "AG02": {"chord": ["KC_LGUI", "KC_3"], "name": "T3 thread 3"},
+    "AG03": {"chord": ["KC_LGUI", "KC_4"], "name": "T3 thread 4"},
+    "AG04": {"chord": ["KC_LGUI", "KC_5"], "name": "T3 thread 5"},
+    "AG05": {"chord": ["KC_LGUI", "KC_6"], "name": "T3 thread 6"},
+    "ACT06": {"chord": ["KC_LGUI", "KC_LSFT", "KC_A"], "name": "T3 mode"},
+    "ACT07": {"keycode": "KC_ENT"},
+    "ACT08": {"chord": ["KC_LGUI", "KC_DOT"], "name": "T3 stop"},
+    "ACT09": {"chord": ["KC_LGUI", "KC_LSFT", "KC_O"], "name": "T3 new thread"},
+    "ACT12": {"keycode": "KC_ENT"}
+  },
+  "encoder": {
+    "clockwise": {"chord": ["KC_LGUI", "KC_LSFT", "KC_LBRC"], "name": "T3 prev thread"},
+    "counterclockwise": {"chord": ["KC_LGUI", "KC_LSFT", "KC_RBRC"], "name": "T3 next thread"},
+    "press": {"keycode": "KC_NONE"}
+  },
+  "notes": [
+    "Agent Keys jump to sidebar threads 1-6 (thread.jump.N). T3 exposes no deep link or RPC that focuses an existing thread, so these follow sidebar order, not agent state.",
+    "REJ needs the thread.stop keybinding; T3 ships it unbound."
+  ]
+}
