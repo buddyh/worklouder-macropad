@@ -5,7 +5,7 @@ description: Inspect, design, configure, back up, and physically verify Work Lou
 
 # Work Louder Macropad
 
-Configure the device as an agent-assisted control surface while preserving the user's working layout. The bundled CLI edits every Codex Micro surface currently exposed by Input 0.17.2 and firmware v0.5.0-rc.1. Treat other versions as unverified until inspected and physically tested.
+Configure the device as an agent-assisted control surface while preserving the user's working layout. The bundled CLI edits every Codex Micro surface exposed by Input 0.17.2 with firmware v0.5.0-rc.1, and by Input 1.0.2 with firmware 0.6.3. Treat other versions as unverified until inspected and physically tested.
 
 ## Non-negotiable boundaries
 
@@ -36,6 +36,8 @@ Read only the references needed for the request:
 - [input-protocol.md](references/input-protocol.md): Input storage, HID RPC, serialization, checksums, and recovery.
 - [firmware.md](references/firmware.md): firmware, Input version, Smart Actions gate, code-signing, and recovery.
 - [keycodes.md](references/keycodes.md): keycode families and layer/profile switching.
+- [agent-apps.md](references/agent-apps.md): per-app layers for Claude desktop and T3 Code, AppSense, finding an app's real shortcuts, adding another app.
+- [agent-session-keys.md](references/agent-session-keys.md): Agent Keys lit and focused per Claude session through freemicro.
 
 ## Workflow-design process
 
@@ -66,6 +68,26 @@ open -a input
 
 Add `--allow-command-execution` only when the manifest enables command permission. Layer 1 changes require both an operation-level `allowStockLayer: true` and CLI-level `--allow-stock-layer`.
 10. Physically verify every changed input and inspect `~/Library/Logs/input/main.log` when host actions fail.
+
+## Agent app layers
+
+Give each agent app its own layer that turns on when the app is frontmost. Profiles in `profiles/` describe a layer portably; the generator allocates Action, Smart Action and linked-app IDs from the user's live Input data, so no shared profile overwrites the user's own definitions.
+
+1. Inventory: `node scripts/worklouder.js inspect`. Pick a free layer (2-6, never 1) and confirm with the user which layer it is.
+2. Ask which dictation shortcut, if any, the wide MIC key should hold. Never assume one.
+3. For the Claude profile, set up freemicro first ([agent-session-keys.md](references/agent-session-keys.md)). For T3 Code, add the `thread.stop` keybinding ([agent-apps.md](references/agent-apps.md)).
+4. Generate and dry-run:
+
+```bash
+node scripts/generate-app-layer.js --profile profiles/claude-desktop.json --layer 3 \
+  [--mic KC_LSFT,KC_LALT] --output /tmp/layer3.json
+node scripts/worklouder.js apply-config /tmp/layer3.json
+```
+
+5. Check `protectedLayer1Preserved: true` and that only the intended files change. Then quit Input, apply with `--apply`, and relaunch Input (AppSense and Smart Actions need it running).
+6. Read back with `inspect --live` and have the user physically test: the layer follows the app, every key, both dial directions.
+
+Re-running the generator against an already-applied layer should dry-run to no changes; that is the check that a profile matches what is on the device.
 
 ## Smart Actions
 

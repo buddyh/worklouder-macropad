@@ -209,3 +209,21 @@ This keeps quoting, secrets, and workflow logic out of Input's database while re
 - Reserve encoder turns for continuous or reversible controls.
 - Keep joystick sectors few enough to select reliably.
 - Include a way back to Layer 1 on every custom layer.
+
+## Push-to-talk on the wide MIC key
+
+The wide MIC cap sits on two switches (`ACT10` and `ACT11`, row 4 keys 1 and 2) and a press closes both. Put one modifier on each half and holding the cap holds the pair, for example Shift+Option for a dictation app's hold-to-talk shortcut:
+
+```bash
+node scripts/generate-app-layer.js --profile profiles/claude-desktop.json --layer 3 --mic KC_LSFT,KC_LALT --output layer3.json
+```
+
+or directly:
+
+```json
+{"type":"set-key","profileId":0,"layer":3,"row":4,"key":1,"value":"KC_LSFT"}
+{"type":"set-key","profileId":0,"layer":3,"row":4,"key":2,"value":"KC_LALT"}
+```
+
+Match whatever the user's dictation app expects. A shortcut made of plain keycodes needs no Action, so the press and release track the cap exactly.
+
